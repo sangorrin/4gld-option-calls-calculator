@@ -2,5 +2,5 @@
   "name": "GoldRent - 4GLD Covered Call Income Assistant",
   "description": "Automated Covered Call strategy planner and backtester for Xetra-Gold (4GLD). Generate weekly strike & expiration recommendations with the Cava and Quantitative Delta models.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": []
 }
