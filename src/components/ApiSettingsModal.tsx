@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Key, ExternalLink, Check, AlertCircle, Trash2, X } from 'lucide-react';
-import { getStoredApiKey, saveApiKey, removeApiKey } from '../utils/twelveDataApi';
+import { Key, ExternalLink, Check, AlertCircle, Trash2, X, RefreshCw } from 'lucide-react';
+import { getStoredApiKey, saveApiKey, removeApiKey, testTwelveDataApiKey } from '../utils/twelveDataApi';
 import { Language, translations } from '../i18n/translations';
 
 interface ApiSettingsModalProps {
@@ -18,7 +18,8 @@ export const ApiSettingsModal: React.FC<ApiSettingsModalProps> = ({
 }) => {
   const t = translations[language];
   const [apiKey, setApiKey] = useState('');
-  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(
+  const [isTesting, setIsTesting] = useState(false);
+  const [feedback, setFeedback] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(
     null
   );
 
@@ -31,12 +32,45 @@ export const ApiSettingsModal: React.FC<ApiSettingsModalProps> = ({
 
   if (!isOpen) return null;
 
+  const handleTestKey = async () => {
+    const trimmed = apiKey.trim();
+    if (!trimmed) {
+      setFeedback({
+        type: 'error',
+        message: language === 'es' ? 'Introduce una clave antes de probar.' : 'Please enter an API key first.',
+      });
+      return;
+    }
+
+    setIsTesting(true);
+    setFeedback(null);
+    try {
+      const res = await testTwelveDataApiKey(trimmed);
+      if (res.success) {
+        setFeedback({
+          type: 'success',
+          message: res.message,
+        });
+      } else {
+        setFeedback({
+          type: 'error',
+          message: res.message,
+        });
+      }
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      setFeedback({ type: 'error', message: msg });
+    } finally {
+      setIsTesting(false);
+    }
+  };
+
   const handleSave = () => {
     const trimmed = apiKey.trim();
     if (!trimmed) {
       removeApiKey();
       setFeedback({
-        type: 'success',
+        type: 'info',
         message: language === 'es' ? 'Clave eliminada. Usando datos verificados de Fráncfort.' : 'API key removed. Using verified Frankfurt Xetra feed.',
       });
       onKeyUpdated();
@@ -48,8 +82,8 @@ export const ApiSettingsModal: React.FC<ApiSettingsModalProps> = ({
       type: 'success',
       message:
         language === 'es'
-          ? '¡Clave guardada en localStorage! Las cotizaciones en vivo se consultarán directamente.'
-          : 'API Key saved to localStorage! Live quotes for 4GLD:XETR will now be fetched directly.',
+          ? '¡Clave guardada! Consultando cotizaciones en vivo.'
+          : 'API Key saved! Fetching live quotes.',
     });
     onKeyUpdated();
   };
@@ -58,7 +92,7 @@ export const ApiSettingsModal: React.FC<ApiSettingsModalProps> = ({
     removeApiKey();
     setApiKey('');
     setFeedback({
-      type: 'success',
+      type: 'info',
       message: language === 'es' ? 'Clave eliminada de localStorage.' : 'API key cleared from localStorage.',
     });
     onKeyUpdated();
@@ -106,9 +140,20 @@ export const ApiSettingsModal: React.FC<ApiSettingsModalProps> = ({
         </div>
 
         <div className="space-y-3 mb-5">
-          <label className="block text-xs font-semibold text-slate-200">
-            {t.apiModalKeyLabel}
-          </label>
+          <div className="flex items-center justify-between">
+            <label className="block text-xs font-semibold text-slate-200">
+              {t.apiModalKeyLabel}
+            </label>
+            <button
+              onClick={handleTestKey}
+              disabled={isTesting || !apiKey.trim()}
+              className="text-xs text-amber-400 hover:text-amber-300 inline-flex items-center gap-1 disabled:opacity-40"
+            >
+              <RefreshCw className={`w-3 h-3 ${isTesting ? 'animate-spin' : ''}`} />
+              <span>{language === 'es' ? 'Probar Conexión' : 'Test Connection'}</span>
+            </button>
+          </div>
+
           <input
             type="password"
             value={apiKey}
@@ -119,18 +164,20 @@ export const ApiSettingsModal: React.FC<ApiSettingsModalProps> = ({
 
           {feedback && (
             <div
-              className={`text-xs p-3 rounded-lg flex items-center gap-2 ${
+              className={`text-xs p-3 rounded-lg flex items-start gap-2 ${
                 feedback.type === 'success'
                   ? 'bg-emerald-950/50 text-emerald-300 border border-emerald-500/30'
+                  : feedback.type === 'info'
+                  ? 'bg-blue-950/50 text-blue-300 border border-blue-500/30'
                   : 'bg-rose-950/50 text-rose-300 border border-rose-500/30'
               }`}
             >
               {feedback.type === 'success' ? (
-                <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                <Check className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
               ) : (
-                <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0" />
+                <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0 mt-0.5" />
               )}
-              <span>{feedback.message}</span>
+              <span className="leading-relaxed">{feedback.message}</span>
             </div>
           )}
         </div>

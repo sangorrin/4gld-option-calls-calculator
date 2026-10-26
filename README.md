@@ -35,20 +35,25 @@ An automated Covered Call strategy planner, probability engine, and historical b
 3. **Freedom24 Step-by-Step Execution Guide:**
    - Exact order parameters: Ticker, option chain, target expiry date, strike ceiling, and order type with a 1-click **Copy Instructions** button.
 
-4. **Historical Backtesting ("Test on Past Data"):**
+6. **Technical Indicators Chart (Live Dashboard):**
+   - Interactive chart displaying price history with user-selectable lookbacks (30D, 60D default, 90D, 180D).
+   - Plots daily Fast SMA 20 (yellow), Slow SMA 50 (blue), Swing-High Resistances R1 & R2 (orange/red), and the Quantitative 0.16 Delta ceiling (purple).
+
+7. **TradingView Pine Script (v5 Indicator):**
+   - Includes ready-to-paste TradingView Pine Script v5 code plotting the moving averages, dynamic pivot resistances, 0.16 Delta statistical ceiling, and real-time dashboard table directly onto TradingView charts.
+
+8. **Historical Backtesting ("Test on Past Data"):**
    - Slices real historical Frankfurt market data strictly up to the chosen date with **zero lookahead bias**.
    - Evaluates both algorithms simultaneously against actual future expiration prices.
    - Visualizes price trajectory against recommended strike levels on an interactive SVG chart.
    - Summarizes plain-language investor outcomes (e.g. kept 100% premium + retained all gold vs. assigned at strike with capital gains).
 
-5. **Bilingual Support (English & Spanish):**
+9. **Bilingual Support (English & Spanish):**
    - Instant language switcher (`🇬🇧 EN` / `🇪🇸 ES`) with full translations across all dashboards, formulas, and educational glossaries.
 
-6. **Interactive Scenario Simulator:**
-   - Move the expiration price slider to inspect the exact P&L, cash premium retained, and assignment status across various price scenarios.
-
-7. **Prerequisites & "Grandmother" Glossary:**
-   - Plain-language accordion explanations designed for beginners covering options, strikes, DTE, time decay ($\Theta$), premiums, and the 3-step income engine.
+10. **Interactive Scenario Simulator & Educational Glossary:**
+    - Move the expiration price slider to inspect P&L, cash premium retained, and assignment status.
+    - Plain-language accordion explanations covering 4GLD physical backing, covered call mechanics, and time decay ($\Theta$).
 
 ---
 

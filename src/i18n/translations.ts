@@ -5,7 +5,7 @@ export const translations = {
     appTitle: 'GoldRent Assistant',
     appBadge: '4GLD',
     appSubtitle: 'Automated Covered Call strategy planner & backtester for Xetra-Gold',
-    description: 'Generate weekly income on physical gold without taking on unlimited risk. Designed for beginners.',
+    description: 'Educational platform for studying physical gold covered call options and mathematical strike models.',
     marketInfo: 'Market: Deutsche Börse Xetra (Frankfurt) · ISIN: DE000A0S9GB0 · 1 Share = 1g Pure Gold',
     dataSourceLive: 'Twelve Data Live REST',
     dataSourceVerified: 'Verified Frankfurt Feed',
@@ -15,10 +15,24 @@ export const translations = {
     twelveDataConfig: 'Twelve Data API',
     
     // Disclaimer
-    disclaimerTitle: 'Regulatory & Risk Disclaimer',
+    disclaimerTitle: 'Regulatory & Educational Disclaimer',
     disclaimerText:
       'Disclaimer: This software is for educational and informational purposes only and does not constitute financial, investment, or trading advice. Options trading involves substantial risk of loss and is not suitable for every investor. The author accepts no liability for any financial losses incurred from using this tool or its models.',
     
+    // Educational Overview
+    overviewTitle: 'Educational Framework: Transforming Gold ETF into Recurring Cash Yield',
+    overviewSubtitle: 'An academic and mathematical exploration of Covered Call mechanics on Frankfurt Xetra-Gold (4GLD)',
+    overviewP1:
+      'This educational web tool demonstrates how systematic quantitative and technical algorithms can determine option strike prices and optimal expiration horizons for physical gold exchange-traded commodities. By pairing 100 shares of 4GLD (100 grams of allocated physical gold in Frankfurt vaults) with the sale of an out-of-the-money call option, an investor models how an otherwise non-yielding precious metal can generate regular "rental income" without incurring naked, unlimited downside risk.',
+    overviewP2:
+      'Important: This application is strictly an educational research and calculation tool designed to model financial engineering concepts. It is not an automated robo-advisor, brokerage service, or solicitation to execute trades. The mathematical models are presented transparently to help students, analysts, and self-directed investors understand how moving average regimes, swing-high resistances, and Black-Scholes standard deviations interact.',
+    overviewCard1Title: 'Zero Unlimited Risk (Covered Rule)',
+    overviewCard1Desc: 'By strictly owning 100 shares of 4GLD prior to selling 1 contract, upside is capped at the strike price, but you never owe out-of-pocket cash.',
+    overviewCard2Title: 'Dual Mathematical Models',
+    overviewCard2Desc: 'Compare José Luis Cava’s trend & resistance methodology with Black-Scholes Gaussian ~0.16 Delta (~84% probability) volatility boundaries.',
+    overviewCard3Title: 'Deterministic Algorithms',
+    overviewCard3Desc: 'No black-box machine learning or speculative calls. 100% reproducible statistical calculations based on actual market price distributions.',
+
     // Live Dashboard
     liveDashboardTitle: 'Live Execution Dashboard',
     liveDashboardSubtitle: 'Weekly automated Covered Call action recommendations for 4GLD. Both strategies are displayed side-by-side.',
@@ -26,6 +40,11 @@ export const translations = {
     regimeBullish: 'Bullish Regime',
     regimeNeutral: 'Neutral / Sideways Regime',
     regimeBearish: 'Bearish / Corrective Regime',
+    chartTimeframe: 'Chart Lookback:',
+    chartDays30: '30 Days',
+    chartDays60: '60 Days (Default)',
+    chartDays90: '90 Days',
+    chartDays180: '180 Days',
     
     // Traffic Light
     trafficGreenTitle: 'Favorable Moment (Green Light)',
@@ -96,6 +115,24 @@ export const translations = {
     // Algorithm Explainer
     algoExplainerTitle: 'Algorithm Explanations & Mechanics',
     algoExplainerSubtitle: 'Both models are running permanently. Review their specific quantitative and technical rationale below.',
+
+    // Pine Script Section
+    pineTitle: 'TradingView Pine Script (Custom 4GLD Indicator)',
+    pineSubtitle: 'Official Pine Script v5 script to plot moving averages, dynamic resistances, and 0.16 Delta ceilings directly on your TradingView charts.',
+    pineCopyBtn: 'Copy Pine Script',
+    pineCopiedBtn: 'Pine Script Copied!',
+    pineInstallTitle: 'Step-by-Step Instructions to Install It',
+    pineStep1: 'Open TradingView and navigate to the 4GLD chart (or XETR:4GLD).',
+    pineStep2: 'At the very bottom bar of your screen, click on Pine Editor.',
+    pineStep3: 'Select and delete any default placeholder code inside the editor.',
+    pineStep4: 'Paste the entire code block into the editor.',
+    pineStep5: 'Click Save (name it "4GLD Covered Call Assistant").',
+    pineStep6: 'Click Add to chart.',
+    pineChartLegendTitle: 'What You Will See on Your Chart:',
+    pineLegend1: 'Yellow & Blue Curves: The 20 and 50 daily Simple Moving Averages.',
+    pineLegend2: 'Orange & Red Dashed Lines: The current resistance levels (R1 and R2) derived from pivot swing highs.',
+    pineLegend3: 'Dotted Purple Line: The statistical 0.16 Delta volatility ceiling projected over 35 days.',
+    pineLegend4: 'Dashboard Table (Top Right): Displays the market regime (Bullish/Sideways/Bearish), spot price, volatility, and exact recommended strike floors and DTE for both models.',
     
     // API Modal
     apiModalTitle: 'Twelve Data API Configuration',
@@ -113,7 +150,7 @@ export const translations = {
     appTitle: 'GoldRent Assistant',
     appBadge: '4GLD',
     appSubtitle: 'Planificador y simulador automatizado de Covered Calls sobre Xetra-Gold',
-    description: 'Genera ingresos periódicos sobre oro físico sin asumir riesgo ilimitado. Diseñado para principiantes.',
+    description: 'Plataforma educativa para estudiar la operativa de covered calls y modelos matemáticos de strike sobre oro físico.',
     marketInfo: 'Mercado: Deutsche Börse Xetra (Fráncfort) · ISIN: DE000A0S9GB0 · 1 Acción = 1g de Oro Puro',
     dataSourceLive: 'Twelve Data Live REST',
     dataSourceVerified: 'Datos Verificados Xetra Fráncfort',
@@ -123,10 +160,24 @@ export const translations = {
     twelveDataConfig: 'API Twelve Data',
     
     // Disclaimer
-    disclaimerTitle: 'Aviso Legal y de Riesgo',
+    disclaimerTitle: 'Aviso Legal y Educativo',
     disclaimerText:
       'Disclaimer: This software is for educational and informational purposes only and does not constitute financial, investment, or trading advice. Options trading involves substantial risk of loss and is not suitable for every investor. The author accepts no liability for any financial losses incurred from using this tool or its models. (Descargo de responsabilidad: Este software tiene fines educativos e informativos únicamente y no constituye asesoramiento financiero, de inversión ni de negociación. La operativa con opciones conlleva un riesgo sustancial de pérdida y no es adecuada para todos los inversores. El autor no asume responsabilidad alguna por las pérdidas financieras derivadas del uso de esta herramienta o de sus modelos.)',
     
+    // Educational Overview
+    overviewTitle: 'Marco Educativo: Transformando el Oro ETF en Renta Periódica',
+    overviewSubtitle: 'Exploración académica y matemática de la estrategia Covered Call sobre Xetra-Gold (4GLD)',
+    overviewP1:
+      'Esta herramienta web educativa tiene como propósito demostrar cómo modelos cuantitativos y técnicos determinan de forma sistemática el precio de ejercicio (Strike) y el horizonte temporal óptimo de vencimiento para commodities de oro físico cotizado. Al combinar 100 acciones de 4GLD (100 gramos de oro físico asignado en cámaras acorazadas de Fráncfort) con la venta de una opción Call fuera del dinero, se ilustra cómo un activo que por sí mismo no genera dividendos puede transformarse en un flujo recurrente de renta en efectivo sin asumir riesgo ilimitado.',
+    overviewP2:
+      'Aviso importante: Esta aplicación es estrictamente una herramienta de investigación y cálculo educativo para modelar conceptos de ingeniería financiera. No constituye un gestor automatizado, servicio de intermediación ni recomendación de inversión. Los modelos matemáticos se presentan con total transparencia para que estudiantes, analistas e inversores comprendan la interacción entre regímenes de medias móviles, resistencias por máximos relativos y la desviación estándar de Black-Scholes.',
+    overviewCard1Title: 'Riesgo Ilimitado Nulo (Regla Covered)',
+    overviewCard1Desc: 'Al poseer estrictamente 100 acciones de 4GLD antes de vender 1 contrato, el beneficio alcista queda acotado en el strike, pero jamás adeudas efectivo.',
+    overviewCard2Title: 'Modelos Matemáticos Duales',
+    overviewCard2Desc: 'Compara la metodología de tendencia y resistencia de José Luis Cava con los límites de volatilidad gaussiana a ~0.16 Delta (~84% probabilidad).',
+    overviewCard3Title: 'Algoritmos Deterministas',
+    overviewCard3Desc: 'Sin cajas negras ni conjeturas. Cálculos estadísticos 100% reproducibles y basados en la distribución real de precios del mercado.',
+
     // Live Dashboard
     liveDashboardTitle: 'Panel de Ejecución en Vivo',
     liveDashboardSubtitle: 'Recomendaciones semanales automáticas de Covered Call para 4GLD. Ambos modelos se muestran simultáneamente.',
@@ -134,6 +185,11 @@ export const translations = {
     regimeBullish: 'Régimen Alcista',
     regimeNeutral: 'Régimen Lateral / Neutro',
     regimeBearish: 'Régimen Bajista / Correctivo',
+    chartTimeframe: 'Histórico del Gráfico:',
+    chartDays30: '30 Días',
+    chartDays60: '60 Días (Predeterminado)',
+    chartDays90: '90 Días',
+    chartDays180: '180 Días',
     
     // Traffic Light
     trafficGreenTitle: 'Momento Favorable (Semáforo Verde)',
@@ -204,6 +260,24 @@ export const translations = {
     // Algorithm Explainer
     algoExplainerTitle: 'Explicación Detallada de los Algoritmos',
     algoExplainerSubtitle: 'Ambos modelos funcionan en paralelo. Revisa a continuación sus fundamentos técnicos y cuantitativos.',
+
+    // Pine Script Section
+    pineTitle: 'Pine Script para TradingView (Indicador Oficial 4GLD)',
+    pineSubtitle: 'Código Pine Script v5 para trazar medias móviles, resistencias dinámicas y el techo de 0.16 Delta directamente en tus gráficos de TradingView.',
+    pineCopyBtn: 'Copiar Código Pine Script',
+    pineCopiedBtn: '¡Pine Script Copiado!',
+    pineInstallTitle: 'Instrucciones Paso a Paso para Instalarlo',
+    pineStep1: 'Abre TradingView y accede al gráfico de 4GLD (o XETR:4GLD).',
+    pineStep2: 'En la barra inferior de tu pantalla, haz clic en "Editor de Pine" (Pine Editor).',
+    pineStep3: 'Selecciona y borra cualquier código de plantilla que haya dentro del editor.',
+    pineStep4: 'Pega todo el bloque de código que aparece a continuación.',
+    pineStep5: 'Haz clic en Guardar (puedes nombrarlo "4GLD Covered Call Assistant").',
+    pineStep6: 'Haz clic en "Añadir al gráfico" (Add to chart).',
+    pineChartLegendTitle: 'Qué Verás en tu Gráfico:',
+    pineLegend1: 'Curvas Amarilla y Azul: Las Medias Móviles Simples (SMA) diarias de 20 y 50 periodos.',
+    pineLegend2: 'Líneas Discontinuas Naranja y Roja: Los niveles de resistencia actuales (R1 y R2) calculados a partir de los máximos pivot.',
+    pineLegend3: 'Línea de Puntos Fucsia: El techo estadístico de volatilidad a 0.16 Delta proyectado a 35 días.',
+    pineLegend4: 'Tabla Panel de Control (Arriba a la Derecha): Muestra el régimen de mercado (Alcista/Lateral/Bajista), precio spot, volatilidad y los strikes y DTE recomendados para ambos modelos.',
     
     // API Modal
     apiModalTitle: 'Configuración API Twelve Data',

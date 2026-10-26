@@ -1,33 +1,35 @@
-import React, { useState } from 'react';
-import { RecommendationResult } from '../types';
+import React, { useState, useMemo } from 'react';
+import { RecommendationResult, Candle } from '../types';
 import { Language, translations } from '../i18n/translations';
+import { calculateSMA } from '../utils/indicators';
 import {
   TrendingUp,
   Activity,
   Shield,
   Copy,
   Check,
-  Clock,
-  Coins,
-  Percent,
+  LineChart,
   Sliders,
-  ExternalLink,
 } from 'lucide-react';
 
 interface LiveAnalysisCardProps {
   cavaRec: RecommendationResult;
   quantRec: RecommendationResult;
+  candles: Candle[];
   language: Language;
 }
 
 export const LiveAnalysisCard: React.FC<LiveAnalysisCardProps> = ({
   cavaRec,
   quantRec,
+  candles,
   language,
 }) => {
   const t = translations[language];
   const [copiedModel, setCopiedModel] = useState<'cava' | 'quant' | null>(null);
   const [simulatedExpiryPrice, setSimulatedExpiryPrice] = useState<number>(cavaRec.spotPrice);
+  const [chartDays, setChartDays] = useState<number>(60); // Default 60 days
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   React.useEffect(() => {
     setSimulatedExpiryPrice(cavaRec.spotPrice);
@@ -53,7 +55,7 @@ Order Type: Limit Order (at midpoint of Bid/Ask)`;
   const trafficLight = cavaRec.trafficLight;
   const initialSpot = cavaRec.spotPrice;
 
-  // Simulator based on average or primary strike
+  // Simulator based on Cava strike
   const strikeToSimulate = cavaRec.recommendedStrike;
   const premiumToSimulate = cavaRec.estimatedTotalCash;
   const isAssigned = simulatedExpiryPrice >= strikeToSimulate;
@@ -61,6 +63,93 @@ Order Type: Limit Order (at midpoint of Bid/Ask)`;
   const simCapitalGain = (simEffectiveSoldPrice - initialSpot) * 100;
   const simTotalPnL = premiumToSimulate + simCapitalGain;
   const simReturnPct = (simTotalPnL / (initialSpot * 100)) * 100;
+
+  // -------------------------------------------------------------
+  // Interactive Indicators Chart Calculations
+  // -------------------------------------------------------------
+  const chartData = useMemo(() => {
+    if (!candles || candles.length < 15) return null;
+
+    // Slice requested number of days from the end
+    const visibleCount = Math.min(candles.length, chartDays);
+    const startIndex = candles.length - visibleCount;
+    const visibleCandles = candles.slice(startIndex);
+
+    // Compute SMA20 and SMA50 for each candle using full preceding history
+    const series = visibleCandles.map((c, i) => {
+      const fullIndex = startIndex + i;
+      const historyUpToCurrent = candles.slice(0, fullIndex + 1);
+      const sma20 = calculateSMA(historyUpToCurrent, 20);
+      const sma50 = calculateSMA(historyUpToCurrent, 50);
+      return {
+        date: c.datetime,
+        close: c.close,
+        high: c.high,
+        low: c.low,
+        sma20,
+        sma50,
+      };
+    });
+
+    // Reference levels
+    const r1 = cavaRec.r1Resistance;
+    const r2 = cavaRec.r2Resistance;
+    const quantStrike = quantRec.recommendedStrike;
+
+    // Determine scale bounds
+    const allPrices = [
+      ...series.map((s) => s.close),
+      ...series.map((s) => s.sma20),
+      ...series.map((s) => s.sma50),
+      r1,
+      r2,
+      quantStrike,
+    ].filter((p) => typeof p === 'number' && !isNaN(p) && p > 0);
+
+    const minPrice = Math.min(...allPrices) * 0.985;
+    const maxPrice = Math.max(...allPrices) * 1.015;
+    const priceRange = maxPrice - minPrice || 1;
+
+    const width = 800;
+    const height = 240;
+    const padding = { top: 25, right: 55, bottom: 30, left: 45 };
+
+    const innerWidth = width - padding.left - padding.right;
+    const innerHeight = height - padding.top - padding.bottom;
+
+    const getX = (index: number) =>
+      padding.left + (index / Math.max(1, series.length - 1)) * innerWidth;
+    const getY = (price: number) =>
+      padding.top + innerHeight - ((price - minPrice) / priceRange) * innerHeight;
+
+    const pricePoints = series.map((s, i) => `${getX(i)},${getY(s.close)}`).join(' ');
+    const sma20Points = series.map((s, i) => `${getX(i)},${getY(s.sma20)}`).join(' ');
+    const sma50Points = series.map((s, i) => `${getX(i)},${getY(s.sma50)}`).join(' ');
+
+    const r1Y = getY(r1);
+    const r2Y = getY(r2);
+    const quantY = getY(quantStrike);
+
+    return {
+      width,
+      height,
+      padding,
+      series,
+      pricePoints,
+      sma20Points,
+      sma50Points,
+      r1,
+      r2,
+      quantStrike,
+      r1Y,
+      r2Y,
+      quantY,
+      getX,
+      getY,
+      minPrice,
+      maxPrice,
+    };
+  }, [candles, chartDays, cavaRec.r1Resistance, cavaRec.r2Resistance, quantRec.recommendedStrike]);
 
   return (
     <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-xl">
@@ -88,8 +177,12 @@ Order Type: Limit Order (at midpoint of Bid/Ask)`;
           </div>
           <div className="h-6 w-px bg-slate-800"></div>
           <div className="text-[11px] text-slate-400">
-            <div>SMA20: <span className="text-slate-200 font-mono">€{cavaRec.sma20.toFixed(2)}</span></div>
-            <div>SMA50: <span className="text-slate-200 font-mono">€{cavaRec.sma50.toFixed(2)}</span></div>
+            <div>
+              SMA20: <span className="text-yellow-400 font-mono">€{cavaRec.sma20.toFixed(2)}</span>
+            </div>
+            <div>
+              SMA50: <span className="text-blue-400 font-mono">€{cavaRec.sma50.toFixed(2)}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -148,6 +241,267 @@ Order Type: Limit Order (at midpoint of Bid/Ask)`;
           </div>
         </div>
       </div>
+
+      {/* ------------------------------------------------------------- */}
+      {/* INTERACTIVE INDICATORS CHART (SMA 20, SMA 50, R1, R2, 0.16 Delta) */}
+      {/* ------------------------------------------------------------- */}
+      {chartData && (
+        <div className="bg-slate-950/90 border border-slate-800 rounded-xl p-4 mb-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 mb-3 border-b border-slate-800 gap-3">
+            <div className="flex items-center gap-2">
+              <LineChart className="w-4 h-4 text-amber-400" />
+              <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+                {language === 'es'
+                  ? 'Gráfico Técnico con Indicadores de los Algoritmos'
+                  : 'Technical Chart with Algorithm Indicators'}
+              </h3>
+            </div>
+
+            {/* Lookback Days Selector */}
+            <div className="flex items-center gap-1.5 text-xs">
+              <span className="text-slate-400 text-[11px]">{t.chartTimeframe}</span>
+              <div className="flex bg-slate-900 p-0.5 rounded-lg border border-slate-800">
+                {[30, 60, 90, 180].map((days) => (
+                  <button
+                    key={days}
+                    onClick={() => setChartDays(days)}
+                    className={`px-2 py-1 text-[11px] font-medium rounded transition-colors ${
+                      chartDays === days
+                        ? 'bg-amber-500 text-slate-950 font-bold shadow-sm'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    {days}D
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Chart Legend */}
+          <div className="flex flex-wrap items-center gap-3 text-[11px] mb-2 px-1 text-slate-300">
+            <div className="flex items-center gap-1.5">
+              <span className="w-3 h-1 bg-sky-400 inline-block rounded"></span>
+              <span>4GLD Spot (€{initialSpot.toFixed(2)})</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-3 h-1 bg-yellow-400 inline-block rounded"></span>
+              <span>SMA 20 (€{cavaRec.sma20.toFixed(2)})</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-3 h-1 bg-blue-500 inline-block rounded"></span>
+              <span>SMA 50 (€{cavaRec.sma50.toFixed(2)})</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-3 h-0.5 bg-orange-400 border-b border-orange-400 border-dashed inline-block"></span>
+              <span className="text-orange-300">R1 (€{chartData.r1.toFixed(2)})</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-3 h-0.5 bg-rose-500 border-b border-rose-500 border-dashed inline-block"></span>
+              <span className="text-rose-300">R2 (€{chartData.r2.toFixed(2)})</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-3 h-0.5 bg-fuchsia-400 border-b border-fuchsia-400 border-dotted inline-block"></span>
+              <span className="text-fuchsia-300">Quant 0.16Δ (€{chartData.quantStrike.toFixed(2)})</span>
+            </div>
+          </div>
+
+          {/* SVG Canvas */}
+          <div className="w-full overflow-x-auto relative">
+            <svg
+              viewBox={`0 0 ${chartData.width} ${chartData.height}`}
+              className="w-full h-auto max-h-64 select-none"
+              onMouseLeave={() => setHoveredIndex(null)}
+            >
+              {/* Background grid lines */}
+              <line
+                x1={chartData.padding.left}
+                y1={chartData.padding.top}
+                x2={chartData.width - chartData.padding.right}
+                y2={chartData.padding.top}
+                stroke="#1e293b"
+                strokeWidth="1"
+              />
+              <line
+                x1={chartData.padding.left}
+                y1={chartData.height - chartData.padding.bottom}
+                x2={chartData.width - chartData.padding.right}
+                y2={chartData.height - chartData.padding.bottom}
+                stroke="#1e293b"
+                strokeWidth="1"
+              />
+
+              {/* R1 Resistance Line */}
+              <line
+                x1={chartData.padding.left}
+                y1={chartData.r1Y}
+                x2={chartData.width - chartData.padding.right}
+                y2={chartData.r1Y}
+                stroke="#fb923c"
+                strokeWidth="1.5"
+                strokeDasharray="4 4"
+              />
+              <text
+                x={chartData.width - chartData.padding.right + 4}
+                y={chartData.r1Y + 3}
+                fill="#fb923c"
+                fontSize="9"
+                fontFamily="monospace"
+              >
+                R1 €{chartData.r1.toFixed(1)}
+              </text>
+
+              {/* R2 Resistance Line */}
+              <line
+                x1={chartData.padding.left}
+                y1={chartData.r2Y}
+                x2={chartData.width - chartData.padding.right}
+                y2={chartData.r2Y}
+                stroke="#f43f5e"
+                strokeWidth="1.5"
+                strokeDasharray="4 4"
+              />
+              <text
+                x={chartData.width - chartData.padding.right + 4}
+                y={chartData.r2Y + 3}
+                fill="#f43f5e"
+                fontSize="9"
+                fontFamily="monospace"
+              >
+                R2 €{chartData.r2.toFixed(1)}
+              </text>
+
+              {/* Quant 0.16 Delta Strike Line */}
+              <line
+                x1={chartData.padding.left}
+                y1={chartData.quantY}
+                x2={chartData.width - chartData.padding.right}
+                y2={chartData.quantY}
+                stroke="#e879f9"
+                strokeWidth="1.5"
+                strokeDasharray="2 2"
+              />
+              <text
+                x={chartData.width - chartData.padding.right + 4}
+                y={chartData.quantY + 3}
+                fill="#e879f9"
+                fontSize="9"
+                fontFamily="monospace"
+              >
+                0.16Δ €{chartData.quantStrike.toFixed(1)}
+              </text>
+
+              {/* SMA 50 Blue Curve */}
+              <polyline
+                fill="none"
+                stroke="#3b82f6"
+                strokeWidth="1.75"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                points={chartData.sma50Points}
+              />
+
+              {/* SMA 20 Yellow Curve */}
+              <polyline
+                fill="none"
+                stroke="#facc15"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                points={chartData.sma20Points}
+              />
+
+              {/* Gold Spot Price Path */}
+              <polyline
+                fill="none"
+                stroke="#38bdf8"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                points={chartData.pricePoints}
+              />
+
+              {/* Hover crosshair & interactive markers */}
+              {chartData.series.map((item, idx) => {
+                const x = chartData.getX(idx);
+                const y = chartData.getY(item.close);
+                const isHovered = hoveredIndex === idx;
+
+                return (
+                  <g
+                    key={idx}
+                    onMouseEnter={() => setHoveredIndex(idx)}
+                    className="cursor-pointer"
+                  >
+                    {/* Invisible hover capture rect */}
+                    <rect
+                      x={x - 6}
+                      y={chartData.padding.top}
+                      width={12}
+                      height={chartData.height - chartData.padding.bottom - chartData.padding.top}
+                      fill="transparent"
+                    />
+
+                    {isHovered && (
+                      <>
+                        <line
+                          x1={x}
+                          y1={chartData.padding.top}
+                          x2={x}
+                          y2={chartData.height - chartData.padding.bottom}
+                          stroke="#94a3b8"
+                          strokeWidth="1"
+                          strokeDasharray="2 2"
+                        />
+                        <circle cx={x} cy={y} r={5} fill="#38bdf8" stroke="#0f172a" strokeWidth="2" />
+                      </>
+                    )}
+                  </g>
+                );
+              })}
+
+              {/* Start & End Date Labels */}
+              <text
+                x={chartData.padding.left}
+                y={chartData.height - 10}
+                fill="#94a3b8"
+                fontSize="9"
+                fontFamily="monospace"
+              >
+                {chartData.series[0].date}
+              </text>
+              <text
+                x={chartData.width - chartData.padding.right}
+                y={chartData.height - 10}
+                fill="#94a3b8"
+                fontSize="9"
+                fontFamily="monospace"
+                textAnchor="end"
+              >
+                {chartData.series[chartData.series.length - 1].date}
+              </text>
+            </svg>
+
+            {/* Hover Tooltip Overlay */}
+            {hoveredIndex !== null && chartData.series[hoveredIndex] && (
+              <div className="absolute top-2 left-12 bg-slate-900/95 border border-slate-700 p-2 rounded-lg text-[11px] shadow-lg pointer-events-none flex items-center gap-3">
+                <span className="text-slate-400 font-mono">
+                  {chartData.series[hoveredIndex].date}
+                </span>
+                <span>
+                  Close: <strong className="text-sky-300">€{chartData.series[hoveredIndex].close.toFixed(2)}</strong>
+                </span>
+                <span>
+                  SMA20: <strong className="text-yellow-400">€{chartData.series[hoveredIndex].sma20.toFixed(2)}</strong>
+                </span>
+                <span>
+                  SMA50: <strong className="text-blue-400">€{chartData.series[hoveredIndex].sma50.toFixed(2)}</strong>
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* BOTH STRATEGIES ALWAYS DISPLAYED SIDE-BY-SIDE */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-5">
@@ -361,7 +715,9 @@ Order Type: Limit Order (at midpoint of Bid/Ask)`;
             <span className="text-[10px] text-indigo-400 block font-semibold mb-0.5">
               {t.freedomStep2Title}
             </span>
-            <div className="text-slate-200 font-medium">{language === 'es' ? 'Buscar 4GLD Opciones' : 'Search 4GLD Options'}</div>
+            <div className="text-slate-200 font-medium">
+              {language === 'es' ? 'Buscar 4GLD Opciones' : 'Search 4GLD Options'}
+            </div>
             <div className="text-[11px] text-slate-400 mt-1">{t.freedomStep2Desc}</div>
           </div>
 
@@ -377,7 +733,9 @@ Order Type: Limit Order (at midpoint of Bid/Ask)`;
             <span className="text-[10px] text-indigo-400 block font-semibold mb-0.5">
               {t.freedomStep4Title}
             </span>
-            <div className="text-emerald-400 font-medium">{language === 'es' ? 'Vender 1 Contrato' : 'Sell to Open 1 Cont.'}</div>
+            <div className="text-emerald-400 font-medium">
+              {language === 'es' ? 'Vender 1 Contrato' : 'Sell to Open 1 Cont.'}
+            </div>
             <div className="text-[11px] text-slate-400 mt-1">{t.freedomStep4Desc}</div>
           </div>
         </div>
